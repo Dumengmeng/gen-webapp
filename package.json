@@ -1,0 +1,22 @@
+{
+    "name": "gen-webapp",
+    "version": "0.0.1",
+    "description": "to generator a project quickly by given conditions",
+    "main": "index.js",
+    "bin": {
+        "gen-cli": "./src/index.js"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Dumengmeng/gen-webapp.git"
+    },
+    "author": "dm",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Dumengmeng/gen-webapp/issues"
+    },
+    "homepage": "https://github.com/Dumengmeng/gen-webapp#readme"
+}
