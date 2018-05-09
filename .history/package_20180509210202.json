@@ -1,10 +1,10 @@
 {
     "name": "gen-webapp",
-    "version": "0.0.2",
+    "version": "0.0.1",
     "description": "to generator a project quickly by given conditions",
     "main": "index.js",
     "bin": {
-        "elefed-cli": "index.js"
+        "gen-cli": "./src/index.js"
     },
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
@@ -13,7 +13,6 @@
     "license": "ISC",
     "dependencies": {
         "colors": "^1.2.4",
-        "commander": "^2.15.1",
         "readline-sync": "^1.4.9"
     }
 }
