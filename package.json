@@ -1,6 +1,6 @@
 {
     "name": "gen-webapp",
-    "version": "0.0.2",
+    "version": "0.0.2232",
     "description": "to generator a project quickly by given conditions",
     "main": "index.js",
     "bin": {

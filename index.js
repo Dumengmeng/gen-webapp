@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-// 命令行输入： gen-cli [projectName]
-
 const fs = require('fs')
 const path = require('path')
 const colors = require('colors')
@@ -10,11 +8,10 @@ const exec = require('child_process').exec
 const readlineSync = require('readline-sync')
 program.parse(process.argv)
 
-console.log('__dirname', __dirname)
 
+const gen = {
 
-const app = {
-
+    curPath: process.cwd(),
     projectName: program.args[0]|| 'webapp',
     projectTypeIndex: 0,
     projectTypes: ['PC', 'H5'],
@@ -54,7 +51,7 @@ const app = {
         // 确认开始创建项目
         const isConfirmed = readlineSync.keyInYN(colors.green('Confirm to build your project?'))
         if (isConfirmed) {
-            console.log(colors.green("I'm going to build your app... \n"))
+            console.log(colors.green("I'm going to build your app... "))
         } else {
             this._exitProcess()
         }
@@ -62,16 +59,19 @@ const app = {
 
     buildPro() {
         // 从远程克隆目录文件
-        const proUrl = _getProUrl(projectTypeIndex)
+        const proUrl = this._getProUrl(this.projectTypeIndex)
         if (proUrl) {
-            const cmd = `git clone ${proUrl} ${__dirname}/${projectName}`
-            exec(cmd, function(error, stdout, stderr){
+            const cmd = `git clone ${proUrl} ${this.curPath}`
+            exec(cmd, (error, stdout, stderr) => {
                 if(error) {
-                    console.error('error: ' + error)
-                    return
+                    console.error('Some error occured: ' + error)
+                    this._exitProcess()
                 }
 
-                _deleteGitDic(`${__dirname}/.git`)
+                _deleteGitDic(`${this.curPath}/.git`)
+
+                console.log(colors.yellow('All work done!'))
+                
             })
         } else {
             console.log('项目仓库路径为空！')
@@ -80,18 +80,16 @@ const app = {
     
     _getProUrl(idx = 0) {
         // 获取项目路径
-        if (proSourceUrl) {
-            return proSourceUrl[idx].url
-        }
+        return this.proSourceUrl ? this.proSourceUrl[idx].url : ''
     },
     
     _deleteall(path) {
         // 删除文件或文件夹
         let files = []
         if(fs.existsSync(path)) {
-            files = fs.readdirSync(path);
+            files = fs.readdirSync(path)
             files.forEach(function(file, index) {
-                var curPath = path + "/" + file;
+                var curPath = `${path}/${file}`
                 if(fs.statSync(curPath).isDirectory()) {
                     this._deleteall(curPath)
                 } else {
@@ -117,20 +115,16 @@ const app = {
 
     _isEmptyDirectory(path) {
         // 是否为空目录
-        fs.readdirSync(path, function (err, files) {
-            return !(files && files.length)
-        })
+        return !fs.readdirSync(path).length
     },
 }
 
 try {
-    app.quesName()
-    app.quesType()
-    app.prepare(__dirname + '/copy')
-    app.confirm()
-    app.buildPro()
+    gen.quesName()
+    gen.quesType()
+    gen.prepare(gen.curPath)
+    gen.confirm()
+    gen.buildPro()
 } catch (e) {
-    console.log('Some error occurs:', JSON.stringify(e))
+    console.log('Some error occured:', JSON.stringify(e))
 }
-
-console.log(colors.yellow('All work done!'))
