@@ -4,7 +4,9 @@ const fs = require('fs')
 const path = require('path')
 const colors = require('colors')
 const program = require('commander')
-const exec = require('child_process').exec
+const cld_process = require('child_process')
+const exec = cld_process.exec
+const execSync = cld_process.execSync
 const readlineSync = require('readline-sync')
 program.parse(process.argv)
 
@@ -17,10 +19,10 @@ const gen = {
     projectTypes: ['PC', 'H5'],
     proSourceUrl: [{
         type: 'PC',
-        url: 'git@git.elenet.me:mengmeng.du/test-gen.git'
+        url: 'git@git.elenet.me:mengmeng.du/gen-PC.git'
     }, {
         type: 'H5',
-        url: 'git@git.elenet.me:mengmeng.du/test-gen.git'
+        url: 'git@git.elenet.me:mengmeng.du/gen-H5.git'
     }],
     
     quesName() {
@@ -67,11 +69,8 @@ const gen = {
                     console.error('Some error occured: ' + error)
                     this._exitProcess()
                 }
-
-                _deleteGitDic(`${this.curPath}/.git`)
-
+                this._deleteGitDic(`${this.curPath}/.git`)
                 console.log(colors.yellow('All work done!'))
-                
             })
         } else {
             console.log('项目仓库路径为空！')
@@ -84,19 +83,21 @@ const gen = {
     },
     
     _deleteall(path) {
-        // 删除文件或文件夹
-        let files = []
+        // 清空文件夹
         if(fs.existsSync(path)) {
-            files = fs.readdirSync(path)
-            files.forEach(function(file, index) {
+            let files = fs.readdirSync(path)
+            files.forEach((file, index) => {
                 var curPath = `${path}/${file}`
                 if(fs.statSync(curPath).isDirectory()) {
-                    this._deleteall(curPath)
+                    execSync(`rm -rf ${path}/${file}`, err => {
+                        console.log('remove dir error: ', err)
+                    })
                 } else {
-                    fs.unlinkSync(curPath)
+                    execSync(`rm ${path}/${file}`, err => {
+                        console.log('remove file error: ', err)
+                    })
                 }
             })
-            fs.rmdirSync(path)
         }
     },
 
