@@ -7,15 +7,18 @@ const program = require('commander')
 const cld_process = require('child_process')
 const exec = cld_process.exec
 const execSync = cld_process.execSync
+const readline = require('readline')
 const readlineSync = require('readline-sync')
 program.parse(process.argv)
 
 
 const gen = {
 
+    bindObj: {},
     curPath: process.cwd(),
     projectName: program.args[0]|| 'webapp',
     projectTypeIndex: 0,
+    loadingDoneTag: false,
     projectTypes: ['PC', 'H5'],
     proSourceUrl: [{
         type: 'PC',
@@ -40,7 +43,7 @@ const gen = {
     prepare(path) {
         // 若当前已存在目录文件，则询问是否清空
         if (!this._isEmptyDirectory(path)) {
-            const isRewrite = readlineSync.keyInYN(colors.green('Confirm to rewrite current directory?'))
+            const isRewrite = readlineSync.keyInYN(colors.green("Your directory isn't clean, ensure to rewrite it?"))
             if (isRewrite) {
                 this._deleteall(path)
             } else {
@@ -53,7 +56,8 @@ const gen = {
         // 确认开始创建项目
         const isConfirmed = readlineSync.keyInYN(colors.green('Confirm to build your project?'))
         if (isConfirmed) {
-            console.log(colors.green("I'm going to build your app... "))
+            console.log(colors.green(`I'm going to build your app...`))
+            this._setLoadingAction(this.bindObj)
         } else {
             this._exitProcess()
         }
@@ -70,11 +74,24 @@ const gen = {
                     this._exitProcess()
                 }
                 this._deleteGitDic(`${this.curPath}/.git`)
-                console.log(colors.yellow('All work done!'))
+                this.loadingDoneTag = true
+                console.log(colors.yellow('\rAll work done!'))
             })
         } else {
             console.log('项目仓库路径为空！')
         }
+    },
+
+    _setLoadingAction(obj) {
+        const fix = ['-', '\\', '/']
+        let num = 0
+        let loadTimer = setInterval(() => {
+            process.stdout.write(`\r${fix[(num++) % 3]}`)
+            if (this.loadingDoneTag) {
+                clearInterval(loadTimer)
+                readline.clearLine(process.stdout, 0)
+            }
+        }, 200)
     },
     
     _getProUrl(idx = 0) {

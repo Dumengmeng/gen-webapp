@@ -10,6 +10,8 @@ Create a new folder in which you can input the commander:
 `$ elefed-cli [projectName]`
 
 ### Tips
-1. to make sure the folder is clean otherwise the commander will rewrite all the files.
-2. nodejs version > 9.0.0
+1. make sure the folder is clean otherwise the commander will rewrite all the files
+2. make sure you have the authority to explore git.elenet.me's repositories
+3. nodejs version > 9.0.0
+4. Mac is better
 
