@@ -82,6 +82,13 @@ const gen = {
         }
     },
 
+    initPro() {
+        // TODO
+        // 初始化package.json  包括projectName等
+        // 1、在现有基础上替换
+        // 2、重新生成
+    },
+
     _setLoadingAction(obj) {
         const fix = ['-', '\\', '/']
         let num = 0
@@ -143,6 +150,7 @@ try {
     gen.prepare(gen.curPath)
     gen.confirm()
     gen.buildPro()
+    // gen.initPro()
 } catch (e) {
     console.log('Some error occured:', JSON.stringify(e))
 }
