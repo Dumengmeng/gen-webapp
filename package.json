@@ -1,6 +1,6 @@
 {
     "name": "gen-webapp",
-    "version": "0.0.8",
+    "version": "0.0.9",
     "description": "to generator a project quickly by given conditions",
     "main": "index.js",
     "bin": {
@@ -9,7 +9,14 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
     },
-    "keywords": ["path", "fs", "exec", "execSync", "commander", "readline-sync"],
+    "keywords": [
+        "path",
+        "fs",
+        "exec",
+        "execSync",
+        "commander",
+        "readline-sync"
+    ],
     "author": "dm",
     "license": "ISC",
     "dependencies": {
