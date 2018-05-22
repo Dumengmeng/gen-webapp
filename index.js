@@ -1,27 +1,41 @@
 #!/usr/bin/env node
 
+
 const fs = require('fs')
 const path = require('path')
 const colors = require('colors')
-const program = require('commander')
+const getUserParam = require('./commander')
 const exec = require('child_process').exec
 const execSync = require('child_process').execSync
 const readline = require('readline')
 const readlineSync = require('readline-sync')
-program.parse(process.argv)
+const Util = require('./util')
 
+
+const version = Util.packageJSON(__dirname + '/', 'version')
+const { 
+    cmdType: CMD_TYPE,
+    typeOrder: CMD_TYPE_ORDER,
+    projectName: PRO_NAME,
+    type: PRO_TYPE,
+    repository: PRO_REPOSITORY,
+    force: FORCE_BUILD,
+    branch: PRO_BRANCH } = getUserParam(version) 
 
 const gen = {
 
     curPath: process.cwd(),
-    projectName: program.args[0]|| 'webapp',
+    desc: '',
+    proType: PRO_TYPE,
+    branch: PRO_BRANCH,
     projectTypeIndex: 0,
     loadingDoneTag: false,
-    remoteRepoUrl: '', // 远程仓库路径
-    projectTypes: ['PC', 'H5'],
-    RepoTypes: ['Create an repository', 'Add an remote repository'],
     isCreateNewRepo: false,
     isAddRemoteRepo: false,
+    projectName: PRO_NAME || 'webapp',
+    remoteRepoUrl: PRO_REPOSITORY || '',
+    projectTypes: ['PC', 'H5'],
+    RepoTypes: ['Create an repository', 'Add an remote repository'],
     proSourceUrl: [{
         type: 'PC',
         url: 'git@git.elenet.me:mengmeng.du/gen-PC.git'
@@ -29,6 +43,7 @@ const gen = {
         type: 'H5',
         url: 'git@git.elenet.me:mengmeng.du/gen-H5.git'
     }],
+
     
     quesName() {
         // 项目的名称 default:webapp
@@ -57,12 +72,17 @@ const gen = {
         }
     },
 
-    prepare(path) {
+    quesDesc() {
+        // 代码提交的描述
+        this.desc = readlineSync.question(colors.green(`Your commit desc`))
+    },
+
+    cleanCurDir(path) {
         // 若当前已存在目录文件，则询问是否清空
-        if (!this._isEmptyDirectory(path)) {
+        if (!Util.isEmptyDirectory(path)) {
             const isRewrite = readlineSync.keyInYN(colors.green("Your directory isn't clean, ensure to rewrite it?"))
             if (isRewrite) {
-                this._deleteall(path)
+                Util.deleteAll(path)
             } else {
                 this._exitProcess()
             }
@@ -71,7 +91,19 @@ const gen = {
 
     confirm() {
         // 确认开始创建项目
+        console.log('\nYour project info:')
+        if (CMD_TYPE_ORDER === 0) {
+            console.log({
+                projectName: PRO_NAME,
+                type: this.proType,
+                repository: PRO_REPOSITORY
+            })
+        } else {
+            console.log({ repository: PRO_REPOSITORY })
+        }
+
         const isConfirmed = readlineSync.keyInYN(colors.green('Confirm to build your project?'))
+        
         if (isConfirmed) {
             console.log(colors.green(`I'm going to build your app...`))
             this._setLoadingAction()
@@ -81,48 +113,53 @@ const gen = {
     },
 
     buildPro() {
-        // 从远程克隆目录文件
+        
         const proUrl = this._getProUrl(this.projectTypeIndex)
         if (proUrl) {
             exec(`git clone ${proUrl} ${this.curPath}`, (error) => {
-                this.initPro()
                 if(error) {
                     console.error('clone error: ' + error)
                     this._exitProcess()
                 }
 
-                if (this.isCreateNewRepo && !this.isAddRemoteRepo) {
-                    this._deleteGitDic(`${this.curPath}/.git`)
-                    exec('git init', (error) => {
-                        if(error) {
-                            console.error('init error : ' + error)
-                            this._exitProcess()
-                        }
-                        this._workDone()
-                    })
+                if (CMD_TYPE_ORDER === 0) {
+                    if (this.isCreateNewRepo && !this.isAddRemoteRepo) {
+                        Util.deleteDir(`${this.curPath}/.git`)
+                        exec('git init', (error) => {
+                            if(error) {
+                                console.error('init error : ' + error)
+                                this._exitProcess()
+                            }
+                            this._workDone()
+                        })
+                    }
+        
+                    if (this.isAddRemoteRepo && !this.isCreateNewRepo) {
+                        exec(`git remote set-url origin ${this.remoteRepoUrl}`, (error) => {
+                            if(error) {
+                                console.error('add remote error : ' + error)
+                                this._exitProcess()
+                            }
+                            this._workDone()
+                        })
+                    }
+
+                    Util.packageJSON(this.curPath, 'name', this.projectName)
                 }
-    
-                if (this.isAddRemoteRepo && !this.isCreateNewRepo) {
-                    exec(`git remote set-url origin ${this.remoteRepoUrl}`, (error) => {
-                        if(error) {
-                            console.error('add remote error : ' + error)
-                            this._exitProcess()
-                        }
-                        this._workDone()
-                    })
-                }
+                
             })
         } else {
             console.log('项目仓库路径为空！')
         }
     },
 
-    initPro() {
-        // 自定义package.json文件
-        const jsonFilePath = `${this.curPath}/package.json`
-        const jsonContent = JSON.parse(fs.readFileSync(jsonFilePath))
-        jsonContent.name = this.projectName
-        fs.writeFileSync(jsonFilePath, JSON.stringify(jsonContent, null, 2))
+    pushCode(repoUrl, desc) {
+        if (!repoUrl || !desc) {
+            this.quesRepo()
+            this.quesDesc()
+        }
+        // TODO 
+        execSync(`git update && git add . && git commit -m ${desc} && git push origin ${branch}`)
     },
 
     _setLoadingAction() {
@@ -142,57 +179,70 @@ const gen = {
         return this.proSourceUrl ? this.proSourceUrl[idx].url : ''
     },
     
-    _deleteall(path) {
-        // 清空文件夹
-        if(fs.existsSync(path)) {
-            let files = fs.readdirSync(path)
-            files.forEach((file, index) => {
-                var curPath = `${path}/${file}`
-                if(fs.statSync(curPath).isDirectory()) {
-                    execSync(`rm -rf ${path}/${file}`, err => {
-                        console.log('remove dir error: ', err)
-                    })
-                } else {
-                    execSync(`rm ${path}/${file}`, err => {
-                        console.log('remove file error: ', err)
-                    })
-                }
-            })
-        }
-    },
-
-    _deleteGitDic(path) {
-        // 删除.git文件夹
-        if (fs.existsSync(path)) {
-            this._deleteall(path)
-        }
-    },
-
     _exitProcess() {
         // 退出当前进程
         console.log('\nFailed to build your app! \n')
         process.exit()
     },
 
-    _isEmptyDirectory(path) {
-        // 是否为空目录
-        return !fs.readdirSync(path).length
-    },
-
     _workDone() {
         this.loadingDoneTag = true
         console.log(colors.yellow('\rAll work done!'))
     },
+
+    showHelp(type = '') {
+        exec(`elefed-cli ${type} -h`, (e, output) => {
+            if (e) { console.log(e) }
+            console.log(output)
+        })
+    },
+
+    _hasParam(val = /^-/) {
+        // 是否传指定参数
+        return process.argv.some((item) => {
+            if (typeof val === 'string') {
+                return item === val
+            } else {
+                return /^-/.test(item)
+            }
+        })
+    },
+
+
+    init() {
+        
+        if (this._hasParam()) {
+
+            if (!this._hasParam('-p')) {
+
+                if (CMD_TYPE_ORDER === 0) {
+                    // create模式 特需参数
+                    !PRO_NAME && this.quesName()
+                    !PRO_TYPE && this.quesType()
+    
+                }
+        
+                if (CMD_TYPE_ORDER !== undefined) {
+                    // create、dev模式 共需参数
+                    !PRO_REPOSITORY && this.quesRepo()
+                }
+
+                if (!this._hasParam('-f')) {
+                    this.cleanCurDir(this.curPath)
+                    this.confirm()
+                }
+    
+                this.buildPro()
+
+            } else {
+                this.pushCode(this.remoteRepoUrl)
+            }
+
+        } else {
+            this.showHelp(CMD_TYPE)
+        }
+    }
 }
 
-try {
-    gen.quesName()
-    gen.quesType()
-    gen.quesRepo()
-    gen.prepare(gen.curPath)
-    gen.confirm()
-    gen.buildPro()
-    // gen.initPro()
-} catch (e) {
-    console.log('Some error occured:', JSON.stringify(e))
-}
+gen.init()
+
