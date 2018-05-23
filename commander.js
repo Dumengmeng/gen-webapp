@@ -61,7 +61,7 @@ const setCmd = (version) => {
     program.on('--help', () => {
         console.log('\n  Examples:\n')
         console.log('    $ elefed-cli create -n my-app -t h5 -r git@gitlab.com... ')
-        console.log('    $ elefed-cli dev -r git@gitlab.com... ')
+        console.log('    $ elefed-cli dev -r git@gitlab.com... -b testBranch')
         console.log("    $ elefed-cli -p -m 'some desc...'")
         console.log('')
     })

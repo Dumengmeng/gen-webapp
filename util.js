@@ -2,6 +2,7 @@
 
 const fs = require('fs')
 const path = require('path')
+const execSync = require('child_process').execSync
 
 const Utils = {
 
@@ -41,15 +42,19 @@ const Utils = {
             let files = fs.readdirSync(path)
             files.forEach((file, index) => {
                 var curPath = `${path}/${file}`
-                if(fs.statSync(curPath).isDirectory()) {
-                    execSync(`rm -rf ${path}/${file}`, err => {
-                        console.log('remove dir error: ', err)
-                    })
-                } else {
-                    execSync(`rm ${path}/${file}`, err => {
-                        console.log('remove file error: ', err)
-                    })
-                }
+                execSync(`rm -rf ${path}/${file}`, err => {
+                    if (err) { console.log('remove dir error: ', err) }
+                })
+                // TODO
+                // if(fs.statSync(curPath).isDirectory()) {
+                //     execSync(`rm -rf ${path}/${file}`, err => {
+                //         if (err) { console.log('remove dir error: ', err) }
+                //     })
+                // } else {
+                //     execSync(`rm ${file}`, err => {
+                //         if (err) { console.log('remove file error: ', err) }
+                //     })
+                // }
             })
         }
     },

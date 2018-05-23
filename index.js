@@ -41,7 +41,7 @@ const gen = {
         url: 'git@git.elenet.me:mengmeng.du/gen-PC.git'
     }, {
         type: 'H5',
-        url: 'git@git.elenet.me:mengmeng.du/gen-H5.git'
+        url: 'git@git.elenet.me:fed/h5-template.git'
     }],
 
     
@@ -107,6 +107,7 @@ const gen = {
         if (isConfirmed) {
             console.log(colors.green(`I'm going to build your app...`))
             this._setLoadingAction()
+            this.buildPro()
         } else {
             this._exitProcess()
         }
@@ -114,23 +115,25 @@ const gen = {
 
     buildPro() {
         
-        const proUrl = this._getProUrl(this.projectTypeIndex)
-        if (proUrl) {
-            exec(`git clone ${proUrl} ${this.curPath}`, (error) => {
+        // const proUrl = this._getProUrl(this.projectTypeIndex)
+
+        if (this.remoteRepoUrl) {
+            exec(`git clone ${this.remoteRepoUrl}`, (error) => {
                 if(error) {
-                    console.error('clone error: ' + error)
+                    console.error('clone error2: ' + error)
                     this._exitProcess()
                 }
 
                 if (CMD_TYPE_ORDER === 0) {
+
                     if (this.isCreateNewRepo && !this.isAddRemoteRepo) {
-                        Util.deleteDir(`${this.curPath}/.git`)
+                        Util.deleteAll(`${this.curPath}/.git`)
                         exec('git init', (error) => {
                             if(error) {
                                 console.error('init error : ' + error)
                                 this._exitProcess()
                             }
-                            this._workDone()
+                            this._workDone('All work done!')
                         })
                     }
         
@@ -140,17 +143,30 @@ const gen = {
                                 console.error('add remote error : ' + error)
                                 this._exitProcess()
                             }
-                            this._workDone()
+                            this._workDone('All work done!')
                         })
                     }
 
                     Util.packageJSON(this.curPath, 'name', this.projectName)
+                } 
+
+                if (CMD_TYPE_ORDER === 1) {
+                    const name = this._getRepoName(PRO_REPOSITORY)
+                    exec(`cd ${name} && git checkout -b ${PRO_BRANCH}`, err => {
+                        if (err) { console.log(err) }
+                        this._workDone(`All work done, and has checked to branch ${PRO_BRANCH}!`)
+                    })
                 }
                 
             })
         } else {
             console.log('项目仓库路径为空！')
+            this.quesRepo()
         }
+    },
+
+    _getRepoName(url) {
+        return path.basename(url, '.git')
     },
 
     pushCode(repoUrl, desc) {
@@ -185,9 +201,9 @@ const gen = {
         process.exit()
     },
 
-    _workDone() {
+    _workDone(str) {
         this.loadingDoneTag = true
-        console.log(colors.yellow('\rAll work done!'))
+        console.log(colors.yellow(`\r${str}`))
     },
 
     showHelp(type = '') {
@@ -227,12 +243,13 @@ const gen = {
                     !PRO_REPOSITORY && this.quesRepo()
                 }
 
-                if (!this._hasParam('-f')) {
+                if (!this._hasParam('-f') && CMD_TYPE_ORDER === 0) {
                     this.cleanCurDir(this.curPath)
-                    this.confirm()
                 }
+
+                this.confirm()
     
-                this.buildPro()
+                // this.buildPro()
 
             } else {
                 this.pushCode(this.remoteRepoUrl)
