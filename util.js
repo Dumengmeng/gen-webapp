@@ -36,25 +36,13 @@ const Utils = {
         }
     },
 
+    /* 
+        删除文件夹或文件
+    */
     deleteAll(path) {
-        // 清空文件夹
         if(fs.existsSync(path)) {
-            let files = fs.readdirSync(path)
-            files.forEach((file, index) => {
-                var curPath = `${path}/${file}`
-                execSync(`rm -rf ${path}/${file}`, err => {
-                    if (err) { console.log('remove dir error: ', err) }
-                })
-                // TODO
-                // if(fs.statSync(curPath).isDirectory()) {
-                //     execSync(`rm -rf ${path}/${file}`, err => {
-                //         if (err) { console.log('remove dir error: ', err) }
-                //     })
-                // } else {
-                //     execSync(`rm ${file}`, err => {
-                //         if (err) { console.log('remove file error: ', err) }
-                //     })
-                // }
+            execSync(`rm -rf ${path}`, err => {
+                if (err) { console.log('remove dir error: ', err) }
             })
         }
     },
@@ -63,11 +51,6 @@ const Utils = {
         return !fs.readdirSync(path).length
     },
 
-    deleteDir(path) {
-        if (fs.existsSync(path)) {
-            this.deleteAll(path)
-        }
-    },
 }
 
 module.exports = Utils
