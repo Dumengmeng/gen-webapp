@@ -1,12 +1,13 @@
 {
     "name": "gen-webapp",
-    "version": "0.0.9",
+    "version": "2.0.6",
     "description": "to generator a project quickly by given conditions",
-    "main": "index.js",
+    "main": "./src/index.js",
     "bin": {
-        "elefed-cli": "index.js"
+        "cosmos": "./src/index.js"
     },
     "scripts": {
+        "build": "webpack",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "keywords": [
@@ -14,14 +15,15 @@
         "fs",
         "exec",
         "execSync",
-        "commander",
         "readline-sync"
     ],
     "author": "dm",
     "license": "ISC",
     "dependencies": {
         "colors": "^1.2.4",
-        "commander": "^2.15.1",
+        "commander": "^5.1.0",
+        "leven": "^3.1.0",
+        "ora": "^4.0.4",
         "readline-sync": "^1.4.9"
     }
 }
