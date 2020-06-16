@@ -8,14 +8,25 @@ npm install -g gen-webapp
 ```
 
 ## Usage
-Create a new folder in which you can input the commander:
+create project by type:
 ``` shell
-elefed-cli [projectName]
+cosmos create <app-name>
+
+-d, --usedefault ：Skip prompts and use default template type
+-p, --path ：Path to create your project
+-t, --type ：Template type
+```
+
+
+create project by given remote repository url:
+``` shell
+cosmos init <app-name> <template>
+
+-p, --path ： Path to create your project
 ```
 
 ## Tips
-1. make sure the folder is clean otherwise the commander will rewrite all the files
-2. make sure you have the authority to explore git.elenet.me's repositories
-3. nodejs version > 9.0.0
-4. Mac is better
+1. Make sure you have the authority to explore gitlab.alibaba-inc.com's repositories
+2. nodejs version > 9.0.0
+3. Mac is better
 
